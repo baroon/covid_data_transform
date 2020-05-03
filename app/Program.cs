@@ -8,6 +8,8 @@ namespace app
         {
             DataParser dataParser = new DataParser();
             var parsedData = dataParser.ParseData();
+
+            
         }
     }
 }
