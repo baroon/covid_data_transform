@@ -1,0 +1,46 @@
+{
+    "raw_data": [
+    {
+    "agebracket": "",
+    "contractedfromwhichpatientsuspected": "",
+    "currentstatus": "Hospitalized",
+    "dateannounced": "27/04/2020",
+    "detectedcity": "",
+    "detecteddistrict": "",
+    "detectedstate": "West Bengal",
+    "entryid": "1",
+    "gender": "",
+    "nationality": "",
+    "notes": "Details awaited",
+    "numcases": "38",
+    "source1": "mohfw.gov.in",
+    "source2": "",
+    "source3": "",
+    "statecode": "WB",
+    "statepatientnumber": "",
+    "statuschangedate": "",
+    "typeoftransmission": ""
+    },
+    {
+    "agebracket": "",
+    "contractedfromwhichpatientsuspected": "",
+    "currentstatus": "Hospitalized",
+    "dateannounced": "27/04/2020",
+    "detectedcity": "",
+    "detecteddistrict": "Bhilwara",
+    "detectedstate": "Rajasthan",
+    "entryid": "2",
+    "gender": "",
+    "nationality": "",
+    "notes": "Details awaited",
+    "numcases": "2",
+    "source1": "https://twitter.com/ANI/status/1254618596514422786?s=09",
+    "source2": "",
+    "source3": "",
+    "statecode": "RJ",
+    "statepatientnumber": "",
+    "statuschangedate": "",
+    "typeoftransmission": ""
+    }
+    ]
+}
