@@ -15,20 +15,23 @@ public class DataParser
         using (WebClient wc = new WebClient())
         {
             var json = wc.DownloadString("https://api.covid19india.org/raw_data3.json");
+
             QuickType.raw_data deserializedRecords = JsonConvert.DeserializeObject<QuickType.raw_data>(json);
             var rows = deserializedRecords.RawData;
             CultureInfo MyCultureInfo = new CultureInfo("hi-IN");
 
             foreach(Dictionary<string, string> row in rows)
             {
-               if (string.IsNullOrWhiteSpace(row["dateannounced"]))
+               if (string.IsNullOrWhiteSpace(row["dateannounced"]) ||  
+                                string.IsNullOrWhiteSpace(row["currentstatus"]))
                     continue;     
 
                 CovidRecord covidRecord = new CovidRecord {
                     CurrentStatus =  row["currentstatus"],
                     DateAnnounced = DateTime.Parse(row["dateannounced"], MyCultureInfo),  
                     State = row["detectedstate"],
-                    District = row["detecteddistrict"]
+                    District = row["detecteddistrict"],
+                    NoCases = int.Parse(row["numcases"])
                 };
                 if (string.IsNullOrWhiteSpace(covidRecord.District))
                     covidRecord.District = "Unknown";

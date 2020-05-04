@@ -16,5 +16,8 @@ namespace CovidStudy.ViewModels
 
         [JsonProperty("detecteddistrict")]
         public string District { get; set; }
+
+        [JsonProperty("numcases")]
+        public int NoCases { get; set; }
     }
 }
