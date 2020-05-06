@@ -23,7 +23,8 @@ public class DataParser
             foreach(Dictionary<string, string> row in rows)
             {
                if (string.IsNullOrWhiteSpace(row["dateannounced"]) ||  
-                                string.IsNullOrWhiteSpace(row["currentstatus"]))
+                                string.IsNullOrWhiteSpace(row["currentstatus"]) || 
+                                string.IsNullOrWhiteSpace(row["numcases"]))
                     continue;     
 
                 CovidRecord covidRecord = new CovidRecord {
