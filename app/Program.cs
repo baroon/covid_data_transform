@@ -15,6 +15,7 @@ namespace app
             parsedData = parsedData.Where( x=> (x.CurrentStatus == "Hospitalized")).ToList();
             
             parsedData = FillBlankValues(parsedData);
+            parsedData = parsedData.OrderBy(x=>x.DateAnnounced).ToList();
 
             // Group by district
             var districtGroup = parsedData
