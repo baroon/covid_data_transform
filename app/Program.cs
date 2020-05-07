@@ -29,7 +29,7 @@ namespace app
                 );
 
             string jsonDistrict = JsonConvert.SerializeObject(districtGroup);
-            System.IO.File.WriteAllText("output/output_districts_active.json", jsonDistrict);
+            System.IO.File.WriteAllText("output/output_districts_growth.json", jsonDistrict);
 
             // Group by State
             var stateGroup = parsedData
@@ -42,7 +42,7 @@ namespace app
                     }
                 );
             string jsonState = JsonConvert.SerializeObject(stateGroup);
-            System.IO.File.WriteAllText("output/output_states_active.json", jsonState);
+            System.IO.File.WriteAllText("output/output_states_growth.json", jsonState);
 
             // Group by country
             var countryGroup = parsedData
@@ -55,8 +55,16 @@ namespace app
                     }
                 );
             string jsonCountry = JsonConvert.SerializeObject(countryGroup);
-            System.IO.File.WriteAllText("output/output_country_active.json", jsonCountry);
+            System.IO.File.WriteAllText("output/output_country_growth.json", jsonCountry);
             
+            //States list
+            List<string> uniqueStatesList = parsedData
+                .GroupBy(p => new {p.State} )
+                .Select(g => g.First().State)
+                .ToList();
+            string jsonStatesList = JsonConvert.SerializeObject(uniqueStatesList);
+            System.IO.File.WriteAllText("output/states_names.json", jsonStatesList);
+
             Console.WriteLine("Done!");
         }
 
