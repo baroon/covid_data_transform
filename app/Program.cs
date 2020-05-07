@@ -13,7 +13,8 @@ namespace app
             DataParser dataParser = new DataParser();
             List<CovidRecord> parsedData = dataParser.ParseData();
             parsedData = parsedData.Where( x=> (x.CurrentStatus == "Hospitalized")).ToList();
-            // parsedData = parsedData.Where( x=> (x.State == "Odisha")).ToList();
+            
+            parsedData = FillBlankValues(parsedData);
 
             // Group by district
             var districtGroup = parsedData
@@ -21,12 +22,13 @@ namespace app
                 .Select(y => new
                     {
                         DateAnnounced = y.Key.DateAnnounced,
-                        Location = y.Key.District + " [" + y.Key.State + "]",
+                        Location = y.Key.District,
                         Records = y.Sum( x => x.NoCases)
                     }
                 );
+
             string jsonDistrict = JsonConvert.SerializeObject(districtGroup);
-            System.IO.File.WriteAllText("output_districts_active.json", jsonDistrict);
+            System.IO.File.WriteAllText("output/output_districts_active.json", jsonDistrict);
 
             // Group by State
             var stateGroup = parsedData
@@ -39,7 +41,7 @@ namespace app
                     }
                 );
             string jsonState = JsonConvert.SerializeObject(stateGroup);
-            System.IO.File.WriteAllText("output_states_active.json", jsonState);
+            System.IO.File.WriteAllText("output/output_states_active.json", jsonState);
 
             // Group by country
             var countryGroup = parsedData
@@ -52,9 +54,40 @@ namespace app
                     }
                 );
             string jsonCountry = JsonConvert.SerializeObject(countryGroup);
-            System.IO.File.WriteAllText("output_country_active.json", jsonCountry);
+            System.IO.File.WriteAllText("output/output_country_active.json", jsonCountry);
             
             Console.WriteLine("Done!");
+        }
+
+        private static List<CovidRecord> FillBlankValues(List<CovidRecord> parsedData)
+        {
+            List<CovidRecord> uniqueDistrictList = parsedData
+                .GroupBy(p => new {p.District} )
+                .Select(g => g.First())
+                .ToList();
+
+            List<CovidRecord> uniqueDateList = parsedData
+                .GroupBy(p => new {p.DateAnnounced} )
+                .Select(g => g.First())
+                .ToList();
+
+            foreach(var date in uniqueDateList){
+                foreach(var district in uniqueDistrictList){
+                    if (!parsedData.Exists(x => 
+                        x.DateAnnounced == date.DateAnnounced && x.District == district.District)){
+                            parsedData.Add(
+                                new CovidRecord { 
+                                        DateAnnounced = date.DateAnnounced,  
+                                        State = district.State, 
+                                        District = district.District,
+                                        CurrentStatus = "Hospitalised",
+                                        NoCases = 0
+                                    }
+                        );
+                    }
+                }        
+            }            
+            return parsedData; 
         }
     }
 }
