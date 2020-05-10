@@ -11,18 +11,18 @@ namespace app
         static void Main(string[] args)
         {
             DataParser dataParser = new DataParser();
-            List<CovidRecord> parsedData = dataParser.ParseData();
-            parsedData = parsedData.Where( x=> (x.CurrentStatus == "Hospitalized")).ToList();
+            //List<CovidRecord> parsedGrowthData = dataParser.ParseGrowthData();
+            List<CovidRecord> parsedCumulativeData = dataParser.ParseCumulativeData();
             
-            parsedData = FillBlankValues(parsedData);
-            parsedData = parsedData.OrderBy(x=>x.DateAnnounced).ToList();
+            //parsedData = FillBlankValues(parsedGrowthData);
+            parsedCumulativeData = FillBlankValues(parsedCumulativeData);
 
             // Growth Data
             DataFormatter dataFormatter = new DataFormatter();
-            dataFormatter.GenerateGrowthData(parsedData);
+            //dataFormatter.GenerateGrowthData(parsedCumulativeData);
 
-            // Active cumulative data
-            dataFormatter.GenerateActiveData(parsedData);
+            // Cumulative Data
+            dataFormatter.GenerateActiveData(parsedCumulativeData);
 
             Console.WriteLine("Done!");
         }
@@ -54,7 +54,8 @@ namespace app
                         );
                     }
                 }        
-            }            
+            }      
+            parsedData = parsedData.OrderBy(x=>x.DateAnnounced).ToList();      
             return parsedData; 
         }
     }

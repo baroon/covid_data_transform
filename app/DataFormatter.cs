@@ -5,7 +5,6 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.Data;
 
-
 public class DataFormatter
 {
     internal void GenerateGrowthData(List<CovidRecord> parsedData)
@@ -61,18 +60,35 @@ public class DataFormatter
 
     internal void GenerateActiveData(List<CovidRecord> parsedData)
     {
-        // Group by district
-        var districtGroup = parsedData
+        // Group by district - convert to List and non Anonymous type
+        List<CovidRecord> districtGroup = parsedData
             .GroupBy(x => new {x.DateAnnounced, x.State, x.District})
-            .Select(y => new
+            .Select(y => new CovidRecord
                 {
                     DateAnnounced = y.Key.DateAnnounced,
-                    Location = y.Key.District,
-                    Records = y.Sum( x => x.NoCases)
+                    District = y.Key.District,
+                    NoCases = y.Sum( x => x.NoCases)
                 }
-            );
+            ).ToList();
+        // Create cumulative counts
+        for(int i = 0; i < districtGroup.Count(); i++)
+        {
+            var group = districtGroup[i];
+            var lastLocation = districtGroup.Where(x=> x.DateAnnounced < group.DateAnnounced 
+                && x.District == group.District).LastOrDefault();
 
-        string jsonDistrict = JsonConvert.SerializeObject(districtGroup);
+            if (lastLocation != null)
+            {
+                group.NoCases = lastLocation.NoCases + group.NoCases;
+            }    
+        }
+        var districtGroupAnony = districtGroup.Select(x=> new 
+        {
+            DateAnnounced = x.DateAnnounced,
+            Location = x.District,
+            Records = x.NoCases  
+        });
+        string jsonDistrict = JsonConvert.SerializeObject(districtGroupAnony);
         System.IO.File.WriteAllText("output/output_districts_active.json", jsonDistrict);
 
         // Group by State
@@ -81,7 +97,7 @@ public class DataFormatter
             .Select(y => new
                 {
                     DateAnnounced = y.Key.DateAnnounced,
-                    Location = y.Key.State,
+                    Location = y.Key.State, 
                     Records = y.Sum( x => x.NoCases)
                 }
             );

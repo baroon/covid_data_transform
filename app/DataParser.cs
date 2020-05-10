@@ -7,17 +7,18 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Data;
+using System.Linq;
 
 public class DataParser
 {
-    public List<CovidRecord> ParseData()
+    public List<CovidRecord> ParseGrowthData()
     {
         List<CovidRecord> records = new List<CovidRecord>();
 
         using (WebClient wc = new WebClient())
         {
-            //var json = wc.DownloadString("https://api.covid19india.org/raw_data3.json");
-            var json = System.IO.File.ReadAllText("raw.json");
+            var json = wc.DownloadString("https://api.covid19india.org/raw_data3.json");
+            //var json = System.IO.File.ReadAllText("raw.json");
 
             QuickType.raw_data deserializedRecords = JsonConvert.DeserializeObject<QuickType.raw_data>(json);
             var rows = deserializedRecords.RawData;
@@ -30,25 +31,29 @@ public class DataParser
                                 string.IsNullOrWhiteSpace(row["numcases"]))
                     continue;     
 
-                CovidRecord covidRecord = new CovidRecord {
-                    CurrentStatus =  row["currentstatus"],
-                    DateAnnounced = DateTime.Parse(row["dateannounced"], MyCultureInfo),  
-                    State = row["detectedstate"],
-                    District = (string.IsNullOrWhiteSpace(row["detecteddistrict"]) ? "Unknown" : row["detecteddistrict"]) + " [" + row["detectedstate"] +"]",
-                    NoCases = int.Parse(row["numcases"])
-                };
+                    if (row["currentstatus"] == "Hospitalized")
+                    {
+                        CovidRecord covidRecord = new CovidRecord {
+                            CurrentStatus =  row["currentstatus"],
+                            DateAnnounced = DateTime.Parse(row["dateannounced"], MyCultureInfo),  
+                            State = row["detectedstate"],
+                            District = (string.IsNullOrWhiteSpace(row["detecteddistrict"]) ? "Unknown" : row["detecteddistrict"]) + " [" + row["detectedstate"] +"]",
+                            NoCases = int.Parse(row["numcases"])
+                        };
 
-                records.Add(covidRecord);
+                        records.Add(covidRecord);
+                    }
             } 
         }
 
-        var olderRecords = ReadOlderData();
+        var olderRecords = ParseOlderData();
         records.AddRange(olderRecords);
 
+        records = records.OrderBy(x=>x.DateAnnounced).ToList();
         return records;
     }
 
-    private List<CovidRecord> ReadOlderData()
+    private List<CovidRecord> ParseOlderData()
     {
         List<CovidRecord> records = new List<CovidRecord>();
 
@@ -99,6 +104,63 @@ public class DataParser
             }
         }
 
+        return records;
+    }
+
+    public List<CovidRecord> ParseCumulativeData()
+    {
+        List<CovidRecord> records = new List<CovidRecord>();
+        CultureInfo MyCultureInfo = new CultureInfo("hi-IN");
+
+        StreamReader sr = new StreamReader("input/patients_data_2020-04-1.csv");
+        string[] headers = sr.ReadLine().Split(','); 
+        DataTable dt = new DataTable();
+        foreach (string header in headers)
+        {
+            if (header == "date_announced")
+                dt.Columns.Add(header, System.Type.GetType("System.DateTime"));
+            else
+                dt.Columns.Add(header);
+        }
+        while (!sr.EndOfStream)
+        {
+            string[] rows = sr.ReadLine().Split(',');
+            DataRow dr = dt.NewRow();
+            for (int j = 0; j < headers.Length; j++)
+            {
+                if (headers[j] == "date_announced")
+                    dr[j] = DateTime.Parse(rows[j], MyCultureInfo);  
+                else
+                    dr[j] = rows[j];
+            }
+
+            dt.Rows.Add(dr);
+        }
+
+        var selectedRows = from row in dt.AsEnumerable()
+        where row.Field<DateTime>("date_announced") <= DateTime.Parse("31/03/2020", MyCultureInfo)
+        select row;
+
+        foreach(DataRow row in selectedRows)
+        {
+            if (row["current_status"].ToString() == "Hospitalized")
+            {
+                CovidRecord record = new CovidRecord
+                {
+                    CurrentStatus = "Hospitalized",
+                    DateAnnounced = Convert.ToDateTime(row["date_announced"]),
+                    State = row["detected_state"].ToString(),
+                    District = (string.IsNullOrWhiteSpace(row["detected_district"].ToString()) ? "Unknown" : row["detected_district"].ToString()) + " [" + row["detected_state"].ToString() +"]",
+                    NoCases = 1
+                };
+                records.Add(record);
+            }
+        }
+
+        var growthData = ParseGrowthData();
+        records.AddRange(growthData);
+
+        records = records.OrderBy(x=>x.DateAnnounced).ToList();
         return records;
     }
 }
