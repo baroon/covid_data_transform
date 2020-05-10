@@ -92,29 +92,66 @@ public class DataFormatter
         System.IO.File.WriteAllText("output/output_districts_active.json", jsonDistrict);
 
         // Group by State
-        var stateGroup = parsedData
+        List<CovidRecord> stateGroup = parsedData
             .GroupBy(x => new {x.DateAnnounced, x.State})
-            .Select(y => new
+            .Select(y => new CovidRecord
                 {
                     DateAnnounced = y.Key.DateAnnounced,
-                    Location = y.Key.State, 
-                    Records = y.Sum( x => x.NoCases)
+                    State = y.Key.State, 
+                    NoCases = y.Sum( x => x.NoCases)
                 }
-            );
-        string jsonState = JsonConvert.SerializeObject(stateGroup);
+            ).ToList();
+        // Create cumulative counts
+        for(int i = 0; i < stateGroup.Count(); i++)
+        {
+            var group = stateGroup[i];
+            var lastLocation = stateGroup.Where(x=> x.DateAnnounced < group.DateAnnounced 
+                && x.State == group.State).LastOrDefault();
+
+            if (lastLocation != null)
+            {
+                group.NoCases = lastLocation.NoCases + group.NoCases;
+            }    
+        }
+        var stateGroupAnony = stateGroup.Select(x=> new 
+        {
+            DateAnnounced = x.DateAnnounced,
+            Location = x.State,
+            Records = x.NoCases  
+        });
+        string jsonState = JsonConvert.SerializeObject(stateGroupAnony);
         System.IO.File.WriteAllText("output/output_states_active.json", jsonState);
 
         // Group by country
-        var countryGroup = parsedData
+        List<CovidRecord> countryGroup = parsedData
             .GroupBy(x => new {x.DateAnnounced})
-            .Select(y => new
+            .Select(y => new CovidRecord
                 {
                     DateAnnounced = y.Key.DateAnnounced,
-                    Location = "India",
-                    Records = y.Sum( x => x.NoCases)
+                    State = "India",
+                    NoCases = y.Sum( x => x.NoCases)
                 }
-            );
-        string jsonCountry = JsonConvert.SerializeObject(countryGroup);
+            ).ToList();
+        // Create cumulative counts
+        for(int i = 0; i < countryGroup.Count(); i++)
+        {
+            var group = countryGroup[i];
+            var lastLocation = countryGroup.Where(x=> x.DateAnnounced < group.DateAnnounced 
+                && x.State == group.State).LastOrDefault();
+
+            if (lastLocation != null)
+            {
+                group.NoCases = lastLocation.NoCases + group.NoCases;
+            }    
+        }
+        var countryGroupAnony = countryGroup.Select(x=> new 
+        {
+            DateAnnounced = x.DateAnnounced,
+            Location = x.State,
+            Records = x.NoCases  
+        });
+    
+        string jsonCountry = JsonConvert.SerializeObject(countryGroupAnony);
         System.IO.File.WriteAllText("output/output_country_active.json", jsonCountry);        
     }
 }
