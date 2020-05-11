@@ -13,9 +13,9 @@ namespace app
             DataParser dataParser = new DataParser();
             List<CovidRecord> parsedGrowthData = dataParser.ParseGrowthData();
             List<CovidRecord> parsedCumulativeData = dataParser.ParseCumulativeData();
-            
+
             parsedGrowthData = FillBlankValues(parsedGrowthData);
-            parsedCumulativeData = FillBlankValues(parsedCumulativeData);
+            //parsedCumulativeData = FillBlankValues(parsedCumulativeData);
 
             // Growth Data
             DataFormatter dataFormatter = new DataFormatter();
@@ -57,6 +57,25 @@ namespace app
             }      
             parsedData = parsedData.OrderBy(x=>x.DateAnnounced).ToList();      
             return parsedData; 
+        }
+
+        private static List<CovidRecord> RemoveDistrictsWithLowCounts(List<CovidRecord> parsedData)
+        {   
+            var districtGroup = parsedData
+                .GroupBy(x => new {x.District})
+                .Select(y => new
+                    {
+                        District = y.Key.District, 
+                        Records = y.Sum( x => x.NoCases)
+                    }
+                ).Where(x=>x.Records <= 3);
+
+            foreach(var district in districtGroup)
+            {
+                parsedData.RemoveAll(x=>x.District == district.District);
+            }
+
+            return parsedData;
         }
     }
 }

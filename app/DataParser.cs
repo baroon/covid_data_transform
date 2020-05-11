@@ -17,8 +17,9 @@ public class DataParser
 
         using (WebClient wc = new WebClient())
         {
-            var json = wc.DownloadString("https://api.covid19india.org/raw_data3.json");
-            //var json = System.IO.File.ReadAllText("raw.json");
+            //var json = wc.DownloadString("https://api.covid19india.org/raw_data3.json");
+            //System.IO.File.WriteAllText("raw.json", json);
+            var json = System.IO.File.ReadAllText("raw.json");
 
             QuickType.raw_data deserializedRecords = JsonConvert.DeserializeObject<QuickType.raw_data>(json);
             var rows = deserializedRecords.RawData;

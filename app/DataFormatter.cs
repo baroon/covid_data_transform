@@ -9,17 +9,39 @@ public class DataFormatter
 {
     internal void GenerateGrowthData(List<CovidRecord> parsedData)
     {
-        // Group by district
-        var districtGroup = parsedData
-            .GroupBy(x => new {x.DateAnnounced, x.State, x.District})
+        // Group by district and state
+        var stateDisctrictGrouping = parsedData
+            .GroupBy(x => new {x.State, x.District})
             .Select(y => new
                 {
-                    DateAnnounced = y.Key.DateAnnounced,
-                    Location = y.Key.District,
+                    State = y.Key.State,
+                    District = y.Key.District,
                     Records = y.Sum( x => x.NoCases)
                 }
-            );
+            ).OrderByDescending(x=>x.Records).ToList();
 
+        // Select only top 25 districts from each state
+        var states = stateDisctrictGrouping.Select(y=>y.State).Distinct();        
+        var districtParsedData = new CovidRecord[parsedData.Count()];
+        parsedData.CopyTo(districtParsedData);
+        var districtParsedDataList = districtParsedData.ToList();
+        foreach(var state in states)
+        {
+            var bottomDistricts = stateDisctrictGrouping.Where(y=>y.State == state)
+                .Select(y=>y.District).Skip(25).ToList();
+            
+            foreach(var district in bottomDistricts)
+            {
+                var count = districtParsedDataList.RemoveAll(y=>y.District == district);
+                Console.WriteLine(count);
+            }
+        }
+        var districtGroup = districtParsedDataList.Select(y=> new 
+        {
+            Location = y.District,
+            DateAnnounced = y.DateAnnounced,
+            Records = y.NoCases
+        });
         string jsonDistrict = JsonConvert.SerializeObject(districtGroup);
         System.IO.File.WriteAllText("output/output_districts_growth.json", jsonDistrict);
 
@@ -33,8 +55,10 @@ public class DataFormatter
                     Records = y.Sum( x => x.NoCases)
                 }
             );
+
         string jsonState = JsonConvert.SerializeObject(stateGroup);
         System.IO.File.WriteAllText("output/output_states_growth.json", jsonState);
+
 
         // Group by country
         var countryGroup = parsedData
@@ -49,6 +73,7 @@ public class DataFormatter
         string jsonCountry = JsonConvert.SerializeObject(countryGroup);
         System.IO.File.WriteAllText("output/output_country_growth.json", jsonCountry);
         
+
         //States list
         List<string> uniqueStatesList = parsedData
             .GroupBy(p => new {p.State} )
@@ -148,7 +173,7 @@ public class DataFormatter
         {
             DateAnnounced = x.DateAnnounced,
             Location = x.State,
-            Records = x.NoCases  
+            Records = x.NoCases 
         });
     
         string jsonCountry = JsonConvert.SerializeObject(countryGroupAnony);
