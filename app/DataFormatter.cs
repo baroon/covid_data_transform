@@ -33,7 +33,6 @@ public class DataFormatter
             foreach(var district in bottomDistricts)
             {
                 var count = districtParsedDataList.RemoveAll(y=>y.District == district);
-                Console.WriteLine(count);
             }
         }
         districtParsedDataList = districtParsedDataList.OrderBy(y=>y.DateAnnounced).ToList();
