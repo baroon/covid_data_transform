@@ -36,12 +36,17 @@ public class DataFormatter
                 Console.WriteLine(count);
             }
         }
-        var districtGroup = districtParsedDataList.Select(y=> new 
-        {
-            Location = y.District,
-            DateAnnounced = y.DateAnnounced,
-            Records = y.NoCases
-        });
+        districtParsedDataList = districtParsedDataList.OrderBy(y=>y.DateAnnounced).ToList();
+        var districtGroup = districtParsedDataList
+            .GroupBy(x => new {x.DateAnnounced, x.District})
+            .Select(y => new
+                {
+                    DateAnnounced = y.Key.DateAnnounced,
+                    Location = y.Key.District,
+                    Records = y.Sum( x => x.NoCases)
+                }
+            );        
+
         string jsonDistrict = JsonConvert.SerializeObject(districtGroup);
         System.IO.File.WriteAllText("output/output_districts_growth.json", jsonDistrict);
 
@@ -85,8 +90,33 @@ public class DataFormatter
 
     internal void GenerateActiveData(List<CovidRecord> parsedData)
     {
-        // Group by district - convert to List and non Anonymous type
-        List<CovidRecord> districtGroup = parsedData
+        // Group by district and state
+        var stateDisctrictGrouping = parsedData
+            .GroupBy(x => new {x.State, x.District})
+            .Select(y => new
+                {
+                    State = y.Key.State,
+                    District = y.Key.District,
+                    Records = y.Sum( x => x.NoCases)
+                }
+            ).OrderByDescending(x=>x.Records).ToList();
+        // Select only top 25 districts from each state
+        var states = stateDisctrictGrouping.Select(y=>y.State).Distinct();        
+        var districtParsedData = new CovidRecord[parsedData.Count()];
+        parsedData.CopyTo(districtParsedData);
+        var districtParsedDataList = districtParsedData.ToList();
+        foreach(var state in states)
+        {
+            var bottomDistricts = stateDisctrictGrouping.Where(y=>y.State == state)
+                .Select(y=>y.District).Skip(25).ToList();
+            
+            foreach(var district in bottomDistricts)
+            {
+                var count = districtParsedDataList.RemoveAll(y=>y.District == district);
+            }
+        }
+        districtParsedDataList = districtParsedDataList.OrderBy(y=>y.DateAnnounced).ToList();
+        List<CovidRecord> districtGroup = districtParsedDataList
             .GroupBy(x => new {x.DateAnnounced, x.State, x.District})
             .Select(y => new CovidRecord
                 {

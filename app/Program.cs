@@ -15,7 +15,7 @@ namespace app
             List<CovidRecord> parsedCumulativeData = dataParser.ParseCumulativeData();
 
             parsedGrowthData = FillBlankValues(parsedGrowthData);
-            //parsedCumulativeData = FillBlankValues(parsedCumulativeData);
+            parsedCumulativeData = FillBlankValues(parsedCumulativeData);
 
             // Growth Data
             DataFormatter dataFormatter = new DataFormatter();
