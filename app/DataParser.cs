@@ -29,7 +29,7 @@ public class DataParser
 
         using (WebClient wc = new WebClient())
         {
-            var json = wc.DownloadString("https://api.covid19india.org/raw_data3.json");
+            var json = wc.DownloadString("https://api.covid19india.org/raw_data4.json");
             System.IO.File.WriteAllText("raw1.json", json);
             //var json = System.IO.File.ReadAllText("raw1.json");
 
