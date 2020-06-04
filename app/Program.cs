@@ -11,18 +11,16 @@ namespace app
         static void Main(string[] args)
         {
             DataParser dataParser = new DataParser();
-            List<CovidRecord> parsedGrowthData = dataParser.ParseGrowthData();
-            List<CovidRecord> parsedCumulativeData = dataParser.ParseCumulativeData();
+            List<CovidRecord> parsedData = dataParser.ParseGrowthData();
 
-            parsedGrowthData = FillBlankValues(parsedGrowthData);
-            parsedCumulativeData = FillBlankValues(parsedCumulativeData);
+            parsedData = FillBlankValues(parsedData);
 
             // Growth Data
             DataFormatter dataFormatter = new DataFormatter();
-            dataFormatter.GenerateGrowthData(parsedGrowthData);
+            dataFormatter.GenerateGrowthData(parsedData);
 
             // Cumulative Data
-            dataFormatter.GenerateActiveData(parsedCumulativeData);
+            dataFormatter.GenerateActiveData(parsedData);
 
             Console.WriteLine("Done!");
         }
